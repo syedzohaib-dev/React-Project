@@ -1,6 +1,6 @@
 import React from 'react'
 import ProductCard from './productCard'
-import { BsArrowUpRightCircleFill } from 'react-icons/Bs'
+import { BsArrowUpRightCircleFill } from 'react-icons/bs'
 
 export default function ProductSection(props) {
     return (
