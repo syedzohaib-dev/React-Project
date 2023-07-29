@@ -1,152 +1,356 @@
-import React, { useState } from 'react';
-import './Signup.css'
-export default function Signup() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const handleSubmit = (e) => {
-    e.preventDefault();
+import React, { useContext, useReducer } from 'react';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import Swal from 'sweetalert2';
 
-    const newUser = {
-      email,
-      password,
-    };
+import { GlobalContext } from '../context/login/Context'
+/* import { reducer } from '../login/Reducer'; */
 
-    // Save user to local storage
-    localStorage.setItem('user', JSON.stringify(newUser));
+const initialState = {
+  name: '',
+  fatherName: '',
+  age: '',
+  address: '',
+  city: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  errors: {},
+  choices: [],
+};
 
-    // Redirect to the login page
-    navigateTo('/Login');
+const formReducer = (formState, action) => {
+  switch (action.type) {
+    case 'UPDATE_FIELD':
+      return { ...formState, [action.payload.name]: action.payload.value };
+    case 'TOGGLE_CHOICE':
+      const choices = formState.choices.includes(action.payload.choice)
+        ? formState.choices.filter((s) => s !== action.payload.choice)
+        : [...formState.choices, action.payload.choice];
+      return { ...formState, choices };
+    default:
+      return formState;
+  }
+};
+
+export default function SignUp() {
+  const [formState, formDispatch] = useReducer(formReducer, initialState);
+  const { dispatch } = useContext(GlobalContext);
+
+  const handleChange = (e) => {
+    formDispatch({
+      type: 'UPDATE_FIELD',
+      payload: {
+        name: e.target.name,
+        value: e.target.value,
+      },
+    });
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
+  const handleChoiceChange = (e) => {
+    formDispatch({
+      type: 'TOGGLE_CHOICE',
+      payload: {
+        choice: e.target.value,
+      },
+    });
+  };
 
-  //   if (!firstName || !lastName || !email || !password || !confirmPassword) {
-  //     setError('Please fill in all fields.');
-  //   } else if (!isValidEmail(email)) {
-  //     setError('Invalid email address.');
-  //   } else if (password.length < 6) {
-  //     setError('Password should be at least 6 characters long.');
-  //   } else if (password !== confirmPassword) {
-  //     setError('Passwords do not match.');
-  //   } else {
-  //     setError('');
-  //     navigateTo('/Login');
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
 
-  //     // Form is valid, you can perform further actions like submitting the form
-  //     // setError('');
-  //     console.log('Form submitted!');
-  //   }
+    // Perform form validation
+    const errors = {};
+    if (!formState.name) {
+      errors.name = 'Name is required';
+    }
+    if (!formState.fatherName) {
+      errors.fatherName = 'Father Name is required';
+    }
+    if (!formState.email) {
+      errors.email = 'Email is required';
+    }
+    if (!formState.age) {
+      errors.age = 'Age is required';
+    }
+    if (!formState.city) {
+      errors.city = 'City is required';
+    }
+    if (!formState.password) {
+      errors.password = 'Password is required';
+    }
+    if (formState.password !== formState.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+    if (formState.choices.length === 0) {
+      errors.choices = 'Please select at least one choice';
+    }
 
+    if (Object.keys(errors).length > 0) {
+      formDispatch({
+        type: 'UPDATE_FIELD',
+        payload: { name: 'errors', value: errors },
+      });
+    } else {
+      dispatch({
+        type: 'SIGNUP_USER',
+        payload: formState.user, // Pass the entire formState as the payload
+      });
 
-  // const isValidEmail = (email) => {
-  //   // Simple email validation using a regular expression
-  //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  //   return emailRegex.test(email);
-  // };
+      console.log('Form Data:', formState);
+      Swal.fire('Success!', 'Account registered successfully!', 'success');
+    }
+  };
 
   return (
-    <>
-      <div className="cons">
-        <div className="container py-5 h-100">
-          <div className="row d-flex align-items-center justify-content-center h-100">
-            <div className="col-md-8 col-lg-7 col-xl-6">
-              {/* Image */}
-              <img
-                src="https://media.istockphoto.com/id/1163040043/vector/e-commerce-purple-background.jpg?s=170667a&w=0&k=20&c=CYo01bcrubtgCRcj1507V5ZJ8HDxkRTrUbrxiDN86lk="
-                className="img-fluid"
-                alt="Phone image"
-              />
-
+    <div className="flex-grow-1 d-flex justify-content-center align-items-center">
+      <div
+        className="mb-3 square border border-warning rounded-9 p-4 w-50"
+        style={{ marginTop: '40px', marginBottom: '40px' }}
+      >
+        <h4 className="mb-3 text-center text-warning">Registration Form</h4>
+        <Form onSubmit={handleFormSubmit} className="p-4 rounded" style={{ background: 'linear-gradient(to bottom right, #212121, #ffc107)' }}>
+          <div className="row mb-3">
+            <div className="col-md-6">
+              <Form.Group controlId="formBasicName">
+                <Form.Label className='text-light'>Name</Form.Label>
+                <Form.Control
+                  name="name"
+                  type="text"
+                  placeholder=""
+                  value={formState.name}
+                  onChange={handleChange}
+                  isInvalid={!!formState.errors.name}
+                  style={{ background: 'linear-gradient(to right,  #ffffff, #212121)', color: '#000' }}
+                  className="input-field"
+                />
+                {formState.errors.name && (
+                  <Form.Control.Feedback type="invalid">
+                    {formState.errors.name}
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
             </div>
-            <div className="col-md-7 col-lg-5 col-xl-5 offset-xl-1">
-              <form onSubmit={handleSubmit}>
-                {/* First Name input */}
-                <label className="form-label" htmlFor="form1ExampleFirstName">
-                  First Name
-                </label>
-                <div className="form-outline mb-4">
-                  <input
-                    type="text"
-                    id="form1ExampleFirstName"
-                    className="form-control form-control-lg"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-
-                </div>
-                {/* Last Name input */}
-                <label className="form-label" htmlFor="form1ExampleLastName">
-                  Last Name
-                </label>
-                <div className="form-outline mb-4">
-                  <input
-                    type="text"
-                    id="form1ExampleLastName"
-                    className="form-control form-control-lg"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-
-                </div>
-                <label className="form-label" htmlFor="form1ExampleEmail">
-                  Email address
-                </label>
-                {/* Email input */}
-                <div className="form-outline mb-4">
-                  <input
-                    type="email"
-                    id="form1ExampleEmail"
-                    className="form-control form-control-lg"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-
-                </div>
-                {/* Password input */}
-                <div className="form-outline mb-4">
-                  <label className="form-label" htmlFor="form1ExamplePassword">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    id="form1ExamplePassword"
-                    className="form-control form-control-lg"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-
-                </div>
-                {/* Confirm Password input */}
-                <div className="form-outline mb-4">
-                  <label className="form-label" htmlFor="form1ExampleConfirmPassword">
-                    Confirm Password
-                  </label>
-                  <input
-                    type="password"
-                    id="form1ExampleConfirmPassword"
-                    className="form-control form-control-lg"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-
-                </div>
-                {/* Error message */}
-                {error && <p>{error}</p>}
-                {/* Submit button */}
-                <button type="submit" className="btn btn-primary btn-lg btn-block w-100">
-                  <a href="login">Login</a>
-                </button>
-                {/* Other buttons */}
-              </form>
+            <div className="col-md-6">
+              <Form.Group controlId="formBasicFatherName">
+                <Form.Label className='text-light'>Father Name</Form.Label>
+                <Form.Control
+                  name="fatherName"
+                  type="text"
+                  placeholder=""
+                  value={formState.fatherName}
+                  onChange={handleChange}
+                  isInvalid={!!formState.errors.fatherName}
+                  style={{ background: 'linear-gradient(to right,  #ffffff, #212121)', color: '#000' }}
+                  className="input-field"
+                />
+                {formState.errors.fatherName && (
+                  <Form.Control.Feedback type="invalid">
+                    {formState.errors.fatherName}
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
             </div>
           </div>
-        </div>
+
+          <div className="row mb-3">
+            <div className="col-md-6">
+              <Form.Group controlId="formBasicEmail">
+                <Form.Label className='text-light'>Email address</Form.Label>
+                <Form.Control
+                  name="email"
+                  type="email"
+                  placeholder=""
+                  value={formState.email}
+                  onChange={handleChange}
+                  isInvalid={!!formState.errors.email}
+                  style={{ background: 'linear-gradient(to right,  #ffffff, #212121)', color: '#000' }}
+                  className="input-field"
+                />
+                {formState.errors.email && (
+                  <Form.Control.Feedback type="invalid">
+                    {formState.errors.email}
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </div>
+            <div className="col-md-6">
+              <Form.Group controlId="formBasicAge">
+                <Form.Label className='text-light'>Age</Form.Label>
+                <Form.Control
+                  name="age"
+                  type="number"
+                  placeholder=""
+                  value={formState.age}
+                  onChange={handleChange}
+                  isInvalid={!!formState.errors.age}
+                  style={{ background: 'linear-gradient(to right,  #ffffff, #212121)', color: '#000' }}
+                  className="input-field"
+                />
+                {formState.errors.age && (
+                  <Form.Control.Feedback type="invalid">
+                    {formState.errors.age}
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </div>
+          </div>
+
+          <div className="row mb-3">
+            <div className="col-md-6">
+              <Form.Group controlId="formBasicAddress">
+                <Form.Label className='text-light'>Address</Form.Label>
+                <Form.Control
+                  name="address"
+                  type="text"
+                  placeholder=""
+                  value={formState.address}
+                  onChange={handleChange}
+                  isInvalid={!!formState.errors.address}
+                  style={{ background: 'linear-gradient(to right,  #ffffff, #212121)', color: '#000' }}
+                  className="input-field"
+                />
+                {formState.errors.address && (
+                  <Form.Control.Feedback type="invalid">
+                    {formState.errors.address}
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </div>
+            <div className="col-md-6">
+              <Form.Group controlId="formBasicCity">
+                <Form.Label className='text-light'>City</Form.Label>
+                <Form.Control
+                  name="city"
+                  type="text"
+                  placeholder=""
+                  value={formState.city}
+                  onChange={handleChange}
+                  isInvalid={!!formState.errors.city}
+                  style={{ background: 'linear-gradient(to right,  #ffffff, #212121)', color: '#000' }}
+                  className="input-field"
+                />
+                {formState.errors.city && (
+                  <Form.Control.Feedback type="invalid">
+                    {formState.errors.city}
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </div>
+          </div>
+
+          <div className="row mb-3">
+            <div className="col-md-6">
+              <Form.Group controlId="formBasicPassword">
+                <Form.Label className='text-light'>Password</Form.Label>
+                <Form.Control
+                  name="password"
+                  type="password"
+                  placeholder=""
+                  value={formState.password}
+                  onChange={handleChange}
+                  isInvalid={!!formState.errors.password}
+                  style={{ background: 'linear-gradient(to right,  #ffffff, #212121)', color: '#000' }}
+                  className="input-field"
+                />
+                {formState.errors.password && (
+                  <Form.Control.Feedback type="invalid">
+                    {formState.errors.password}
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </div>
+            <div className="col-md-6">
+              <Form.Group controlId="formBasicConfirmPassword">
+                <Form.Label className='text-light'>Confirm Password</Form.Label>
+                <Form.Control
+                  name="confirmPassword"
+                  type="password"
+                  placeholder=""
+                  value={formState.confirmPassword}
+                  onChange={handleChange}
+                  isInvalid={!!formState.errors.confirmPassword}
+                  style={{ background: 'linear-gradient(to right,  #ffffff, #212121)', color: '#000' }}
+                  className="input-field"
+                />
+                {formState.errors.confirmPassword && (
+                  <Form.Control.Feedback type="invalid">
+                    {formState.errors.confirmPassword}
+                  </Form.Control.Feedback>
+                )}
+              </Form.Group>
+            </div>
+          </div>
+
+          <div className="row mb-3">
+            <div className="col-12">
+              <h6 className='mb-3 text-light'>What are you interested in?</h6>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="gadgets"
+                  value="GADGETS"
+                  checked={formState.choices.includes('GADGETS')}
+                  onChange={handleChoiceChange}
+                />
+                <label className="text-light form-check-label" htmlFor="gadgets">
+                  Gadgets
+                </label>
+              </div>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="accessories"
+                  value="ACCESSORIES"
+                  checked={formState.choices.includes('ACCESSORIES')}
+                  onChange={handleChoiceChange}
+
+                />
+                <label className="text-light form-check-label" htmlFor="accessories">
+                  Accessories
+                </label>
+              </div>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="fragrances"
+                  value="FRAGRANCES"
+                  checked={formState.choices.includes('FRAGRANCES')}
+                  onChange={handleChoiceChange}
+
+                />
+                <label className="text-light form-check-label" htmlFor="fragrances">
+                  Fragrances
+                </label>
+              </div>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="dresses"
+                  value="DRESSES"
+                  checked={formState.choices.includes('DRESSES')}
+                  onChange={handleChoiceChange}
+                />
+                <label className="text-light form-check-label" htmlFor="dresses">
+                  Dresses
+                </label>
+              </div>
+              {formState.errors.choices && (
+                <div className="text-danger">{formState.errors.choices}</div>
+              )}
+            </div>
+          </div>
+          <div className="d-flex justify-content-center">
+            <Button className="btn btn-dark btn-gradient-light text-warning" variant="primary" type="submit">
+              Sign Up
+            </Button>
+          </div>
+        </Form>
       </div>
-    </>
+    </div>
   );
 }

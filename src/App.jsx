@@ -11,44 +11,46 @@ import Category from './Pages/Category';
 import About from './Pages/About';
 import Footer from './Components/Footer';
 import ProductPage from './Pages/ProductPage';
-import CartItem from "./components/cartitem";
+import CartItem from "./Components/CartItems";
+import ContextProvider from "./context/login/Context";
+import Cart from './Components/Cart';
 
 
 function App() {
-  // const [user, setUser] = useState(true);
-  let userLogin = localStorage.getItem('userLogin');
-
-  const [user, setUser] = useState(userLogin)
+  const [User, setUser] = useState(true)
 
   return (
     <>
-      <NavigationBar />
-      {/* <Page404/> */}
-      {
-        user == 'true' ?
-          (
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Product />} />
-              <Route path="/products/:productID" element={<ProductPage />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/product/category/:categoryName" element={<Category />} />
-              {/* <Route path="*" element={<Page404 />} /> */}
-            </Routes>
-          ) : (
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/Login" element={<Login />} />
-              <Route path="/Signup" element={<Signup />} />
-              <Route path="/about" element={<About />} />
-              {/* <Route path="*" element={<Page404 />} /> */}
+      
+        <NavigationBar />
 
-              {/* Redirect to login if user is not authenticated */}
-              <Route path="*" element={<Navigate to="/login" replace={true} />} />
-            </Routes>
-          )}
-      <Footer />
+        {
+          User
+           ?
+            (
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/products" element={<Product />} />
+                <Route path="/products/:productID" element={<ProductPage />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/product/category/:categoryName" element={<Category />} />
+                {/* <Route path="*" element={<Page404 />} /> */}
+              </Routes>
+            ) : (
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/Login" element={<Login />} />
+                <Route path="/Signup" element={<Signup />} />
+                <Route path="/about" element={<About />} />
+                {/* <Route path="*" element={<Page404 />} /> */}
+
+                {/* Redirect to login if user is not authenticated */}
+                <Route path="*" element={<Navigate to="/login" replace={true} />} />
+              </Routes>
+            )}
+        <Footer />
+     
     </>
   );
 }

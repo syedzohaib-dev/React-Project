@@ -4,12 +4,18 @@ import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import React from 'react'
+import React, { useContext } from 'react'
 import './NavigationBar.css'
 import { Link } from 'react-router-dom';
 import { BiCart } from 'react-icons/bi'
+import Cart from './Cart'
 
-function NavigationBar(props) {
+
+function NavigationBar() {
+
+    // const {initialData} = useContext(CartContextProvider)
+    // console.log(initialData)
+
     // console.log(props)
     return (
         <>
@@ -30,12 +36,21 @@ function NavigationBar(props) {
 
 
                         </Nav>
-                        <Form className="d-flex">
-                            <Button variant="btn btn-danger mx-1" to="/Login">Login</Button>
-                            <Button variant="btn btn-danger mx-3" to="/Signup">Signup</Button>
-                            <Button variant="btn btn-dark" to="/Cart"><BiCart /></Button>
-
-                        </Form>
+                        <Nav.Link data-aos="fade-left">
+                            <Link className=" btn mx-2" to="/cart" style={{ backgroundColor: "#eabfff", color: "#300047" }}>                             
+                            <BiCart />
+                            </Link>
+                        </Nav.Link>
+                        <Nav.Link data-aos="fade-left">
+                            <Link className=" btn  mx-2" to="/login" style={{ backgroundColor: "#eabfff", color: "#300047" }}>
+                                Login
+                            </Link>
+                        </Nav.Link>
+                        <Nav.Link data-aos="fade-left">
+                            <Link className=" btn mx-2" to="/signup" style={{ backgroundColor: "#eabfff", color: "#300047" }}>
+                                Sign Up
+                            </Link>
+                        </Nav.Link>
                     </Navbar.Collapse>
                 </Container>
             </Navbar>

@@ -1,133 +1,167 @@
+import React, { useContext, useEffect, useState } from 'react';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import Swal from 'sweetalert2';
+import { GlobalContext } from '../context/login/Context'
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Login.css'
-// import AppBar2 from '../Components/AppBar2';
-import { Link } from "react-router-dom";
-export default function Login() {
-  //   const savedEmail = 'example@example.com';
-  // const savedPassword = 'password123';
-
-
-  // const savedEmail = 'example@example.com';
-  // const savedPassword = 'password123';
-
-  const navigateTo = useNavigate();
+function Login() {
+  const { state, dispatch } = useContext(GlobalContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [allEntry, setAllEntry] = useState([]);
 
-  // Function to handle form submission
+  useEffect(() => {
+    console.log('CONTEXT DATA', state);
+  }, [state]);
+
+  const validateForm = () => {
+    let formIsValid = true;
+    const newErrors = {};
+
+    if (!email) {
+      formIsValid = false;
+      newErrors.email = 'Email is required';
+    }
+
+    if (!password) {
+      formIsValid = false;
+      newErrors.password = 'Password is required';
+    }
+
+    setErrors(newErrors);
+
+    if (formIsValid) {
+      setErrors({});
+    }
+
+    return formIsValid;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const newEntry = { email: email, password: password };
+    setAllEntry([...allEntry, newEntry]);
 
-    const savedUser = JSON.parse(localStorage.getItem('user'));
+    dispatch({
+      type: 'UPDATE_FORM_DATA',
+      payload: newEntry,
+    });
 
-    if (savedUser && savedUser.email === email && savedUser.password === password) {
-      // Valid credentials
-      setError('');
-      // Redirect to the home page
-      navigateTo('/Home');
-    } else {
-      // Invalid credentials
-      alert('Invalid email or password.');
+    if (validateForm()) {
+      const isAuthenticated = authenticateUser(email, password);
+
+      if (isAuthenticated) {
+        dispatch({
+          type: 'LOGIN_USER',
+          payload: { email: email, password: password },
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Login Successful',
+          text: 'You have successfully logged in!',
+          confirmButtonText: 'OK',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = '/';
+          }
+        });
+
+        console.log('CONTEXT DATA:', { email: email, password: password, ...state });
+      } else {
+        setLoginError('Incorrect email or password');
+        console.log('CONTEXT DATA:', { email: email, password: password, ...state });
+      }
     }
   };
 
+  const authenticateUser = (email, password) => {
+    if (email === 'xyz@gmail.com' && password === 'admin') {
+      return true;
+    }
+    return false;
+  };
+
+  const handleSignupClick = () => {
+    window.location.href = './SignUp';
+  };
+  const handleloginClick = () => {
+    window.location.href = '/';
+    /* if (email === 'xyz@gmail.com' && password === 'admin') {
+
+    window.location.href = '/';
+    } 
+    else{
+      window.location.href = './login';
+    }*/
+  };
+  const handleLogout = () => {
+    dispatch({
+      type: 'LOGOUT_USER',
+    });
+    setEmail('');
+    setPassword('');
+  };
+
   return (
-
     <>
-      {/* <AppBar2/> */}
-      <div className="cons">
-        {/* Hello world */}
-        <div className="container py-5 h-100">
-          <div className="row d-flex align-items-center justify-content-center h-100">
-            <div className="col-md-8 col-lg-7 col-xl-6">
-              <img
-                src="https://media.istockphoto.com/id/1163040043/vector/e-commerce-purple-background.jpg?s=170667a&w=0&k=20&c=CYo01bcrubtgCRcj1507V5ZJ8HDxkRTrUbrxiDN86lk="
-                className="img-fluid"
-                alt="Phone image"
+      <div className="container-fluid d-flex justify-content-center align-items-center vh-150">
+        <div className="mb-3 square border border-warning rounded-9 p-4 w-50"
+          style={{ marginTop: '40px', marginBottom: '40px' }}>
+          <h4 className="my-2 text-center text-warning mb-2">Login Form</h4>
+          <Form onSubmit={handleSubmit} className="p-4 rounded" style={{ background: 'linear-gradient(to bottom right, #212121, #ffc107)' }}>
+            <Form.Group className="mb-3" controlId="formBasicEmail">
+              <Form.Label className='text-light'>Email</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Enter email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                isInvalid={!!errors.email}
+                style={{ background: 'linear-gradient(to right,  #ffffff, #212121)', color: '#000' }}
+                className="input-field"
               />
+              {errors.email && (
+                <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
+              )}
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="formBasicPassword">
+              <Form.Label className='text-light'>Password</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                isInvalid={!!errors.password}
+                style={{ background: 'linear-gradient(to right,  #ffffff, #212121)', color: '#000' }}
+                className="input-field"
+              />
+              {errors.password && (
+                <Form.Control.Feedback type="invalid">{errors.password}</Form.Control.Feedback>
+              )}
+            </Form.Group>
+
+            {loginError && <p className="text-danger">{loginError}</p>}
+
+            <div className="d-flex justify-content-center">
+              <Button className="btn btn-dark btn-gradient-light text-warning mr-6" variant="primary" type="submit" onClick={handleloginClick}>
+                Login
+              </Button>
+              <Button className="text-decoration-none btn btn-dark btn-gradient-dark text-white mr-6" variant="link" onClick={handleSignupClick}>
+                Sign Up
+              </Button>
+              <Button className="btn btn-dark btn-gradient-light text-warning" variant="primary" type="submit" onClick={handleLogout}>
+                Logout
+              </Button>
             </div>
-            <div className="col-md-7 col-lg-5 col-xl-5 offset-xl-1">
-              <form onSubmit={handleSubmit}>
-                {/* Email input */}
-                <div className="form-outline mb-4">
-                  <label className="form-label" htmlFor="form1Example13">
-                    Email address
-                  </label>
-                  <input
-                    type="email" value={email}
-                    id="form1Example13" onChange={(e) => setEmail(e.target.value)}
-                    className="form-control form-control-lg"
-                  />
-
-                </div>
-                {/* Password input */}
-                <div className="form-outline mb-4">
-                  <label className="form-label" htmlFor="form1Example23">
-                    Password
-                  </label>
-                  <input value={password}
-                    type="password"
-                    id="form1Example23" onChange={(e) => setPassword(e.target.value)}
-                    className="form-control form-control-lg" />
-
-                </div>
-                <div className="d-flex justify-content-around align-items-center mb-4">
-                  {/* Checkbox */}
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      defaultValue=""
-                      id="form1Example3"
-                      defaultChecked=""
-                    />
-                    <label className="form-check-label" htmlFor="form1Example3">
-                      {" "}
-                      Remember me{" "}
-                    </label>
-                  </div>
-                  {/* <a href="#!">Forgot password?</a> */}
-                </div>
-                {/* Submit button */}
-                {error && <p>{error}</p>}
-                <button type="submit" className="btn btn-lg btn-block w-100 my-2">
-
-                  <a href="/">Login</a>
-                </button>
-                <button type="submit" className="btn btn-lg btn-block w-100 my-2">
-                  <a href="signup">SignUp</a>
-
-
-                </button>
-
-                <button type="submit" className="btn btn-lg btn-block w-100 my-2">
-
-
-                  Continue with Facebook
-
-
-                </button>
-
-                <button type="submit" className="btn btn-lg btn-block w-100 my-2">
-
-
-                  Continue with Twitter
-
-
-
-                </button>
-
-              </form>
-            </div>
-          </div>
+          </Form>
         </div>
       </div>
     </>
-
-
-  )
-
+  );
 }
+
+export default Login;
