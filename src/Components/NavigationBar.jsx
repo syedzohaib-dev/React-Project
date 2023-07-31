@@ -9,6 +9,7 @@ import './NavigationBar.css'
 import { Link } from 'react-router-dom';
 import { BiCart } from 'react-icons/bi'
 import Cart from './Cart'
+import { GlobalContext } from '../context/login/Context';
 
 
 function NavigationBar() {
@@ -17,6 +18,8 @@ function NavigationBar() {
     // console.log(initialData)
 
     // console.log(props)
+    const { state } = useContext(GlobalContext)
+    console.log(state.isLoggedIn ? "logged in" : "not logged");
     return (
         <>
             <Navbar expand="lg" className="bg-body-danger sticky-top" id='Navi'>
@@ -36,21 +39,18 @@ function NavigationBar() {
 
 
                         </Nav>
-                        <Nav.Link data-aos="fade-left">
-                            <Link className=" btn mx-2" to="/cart" style={{ backgroundColor: "#eabfff", color: "#300047" }}>                             
-                            <BiCart />
+                        {!state?.user?.email && <>
+                            <Link className=" btn mx-2" to="/cart" style={{ backgroundColor: "#eabfff", color: "#300047" }}>
+                                <BiCart />
                             </Link>
-                        </Nav.Link>
-                        <Nav.Link data-aos="fade-left">
                             <Link className=" btn  mx-2" to="/login" style={{ backgroundColor: "#eabfff", color: "#300047" }}>
                                 Login
                             </Link>
-                        </Nav.Link>
-                        <Nav.Link data-aos="fade-left">
                             <Link className=" btn mx-2" to="/signup" style={{ backgroundColor: "#eabfff", color: "#300047" }}>
                                 Sign Up
                             </Link>
-                        </Nav.Link>
+                        </>
+                        }
                     </Navbar.Collapse>
                 </Container>
             </Navbar>

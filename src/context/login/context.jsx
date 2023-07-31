@@ -1,12 +1,13 @@
 import React from 'react';
 import { createContext, useReducer } from 'react';
-import { reducer } from './Reducer';
+import { reducer } from './reducer';
 
 export const GlobalContext = createContext();
 
 export default function ContextProvider({ children }) {
   const data = {
-    user: { email: '', password: '' },
+    isLoggedin: undefined,
+    user: undefined,
   };
   const [state, dispatch] = useReducer(reducer, data);
 

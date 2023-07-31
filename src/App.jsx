@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import NavigationBar from './Components/NavigationBar';
-import ProductCard from './Components/ProductCard';
 import Home from './Pages/Home';
 import Product from './Pages/Product';
 import Login from './Pages/Login';
@@ -11,13 +10,14 @@ import Category from './Pages/Category';
 import About from './Pages/About';
 import Footer from './Components/Footer';
 import ProductPage from './Pages/ProductPage';
-import CartItem from "./Components/CartItems";
-import ContextProvider from "./context/login/Context";
+// import CartItem from "./Components/CartItems";
+import { GlobalContext } from './context/login/Context';
 import Cart from './Components/Cart';
+import { useContext } from 'react';
 
 
 function App() {
-  const [User, setUser] = useState(true)
+  const { state } = useContext(GlobalContext)
 
   return (
     <>
@@ -25,7 +25,7 @@ function App() {
         <NavigationBar />
 
         {
-          User
+          state?.user
            ?
             (
               <Routes>
